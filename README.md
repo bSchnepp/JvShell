@@ -10,7 +10,7 @@ Built-in commands:
 ```
   chdir   -- Change the current working directory.
   pdir    -- Print the current working directory.
-  expport -- Exports a variable to the system, in the format 'export variable=value'. The equals must connect them.
+  export -- Exports a variable to the system, in the format 'export variable=value'. The equals must connect them.
 ```
 
 ___

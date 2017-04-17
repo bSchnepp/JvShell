@@ -12,6 +12,19 @@ Built-in commands:
   pdir    -- Print the current working directory.
   expport -- Exports a variable to the system, in the format 'export variable=value'. The equals must connect them.
 ```
+
+___
+JvShell supports changing the prompt displayed on every newline.
+To do this, simply open registry/system_reg.rgr, and modify the value.
+
+Any character not preceeded with a percent sign is printed.
+
+The following combinations are supported:
+
+```
+%n -- Name of user
+%l -- current working directory
+```
 ___
 TODO features:
 - Everything!

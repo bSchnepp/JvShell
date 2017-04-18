@@ -2,19 +2,26 @@ package com.gmail.bschneppdev.jvterm.conhost;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.plaf.nimbus.AbstractRegionPainter;
 
 import com.gmail.bschneppdev.jvterm.term.InputBuffer;
 import com.gmail.bschneppdev.jvterm.term.Terminal;
@@ -23,6 +30,7 @@ public class Instance extends JPanel
 {
     private TermArea area;
     private Terminal term;
+    private Color background;
 
     public Terminal getTerm()
     {
@@ -41,6 +49,56 @@ public class Instance extends JPanel
 	super(new BorderLayout());
 	this.area = new TermArea(Color.BLACK, Color.white, this);	//todo
 	this.add(new JScrollPane(area));
+
+	this.background = Color.BLACK;
+	Color foreground = Color.WHITE;	//Ignored for now, will refactor to make useful later...
+	try
+	{
+	    Scanner settings = new Scanner(new File("registry/system_reg.rgr"));
+	    while (settings.hasNextLine())
+	    {
+		String line = settings.nextLine();
+		if (line.contains("RKEY_PROMPT_COLOR = color3:\""))
+		{
+		    int index = line.lastIndexOf("RKEY_PROMPT_COLOR = color3:\"");
+		    int r, g, b;
+		    String[] colors = line
+		            .substring(index + "RKEY_PROMPT_COLOR = color3:\"".length(), line.length() - 1).trim()
+		            .split(",");
+		    r = Integer.parseInt(colors[0].trim());
+		    g = Integer.parseInt(colors[1].trim());
+		    b = Integer.parseInt(colors[2].trim());
+		    background = new Color(r, g, b);
+		}
+		System.out.println(line);
+	    }
+	    settings.close();
+	}
+	catch (Exception e)
+	{
+	    e.printStackTrace();
+	}
+
+	UIDefaults defaults = UIManager.getLookAndFeelDefaults();
+	defaults.put("TextPane[Enabled].backgroundPainter", new AbstractRegionPainter()
+	{
+
+	    @Override
+	    public AbstractRegionPainter.PaintContext getPaintContext()
+	    {
+		return new AbstractRegionPainter.PaintContext(null, null, false);
+	    }
+
+	    @Override
+	    public void doPaint(Graphics2D g, JComponent c, int width, int height, Object[] extendedCacheKeys)
+	    {
+		g.setColor(Instance.this.background);
+		g.fillRect(0, 0, width, height);
+	    }
+	});
+	this.area.putClientProperty("Nimbus.Overrides", defaults);
+	this.area.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
+	this.area.setBackground(Color.BLACK);
     }
 
     @SuppressWarnings("serial")

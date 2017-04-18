@@ -13,7 +13,7 @@ public class TermArea extends JTextPane
     private Instance instance;
     private TermAreaBuffer out;
     private TermAreaBuffer err;
-    
+
     public TermArea(Color bg, Color fg, Instance parent)
     {
 	super();
@@ -34,6 +34,7 @@ public class TermArea extends JTextPane
 	int size = settings.nextInt();
 	settings.close();
 	this.setFont(new Font(fontname, Font.PLAIN, size));
+	
     }
 
     public Instance getInstance()
@@ -45,17 +46,17 @@ public class TermArea extends JTextPane
     {
 	this.instance = instance;
     }
-    
+
     public void setOut(TermAreaBuffer out)
     {
 	this.out = out;
     }
-    
+
     public void setErr(TermAreaBuffer err)
     {
 	this.err = err;
     }
-    
+
     public TermAreaBuffer getTaberr()
     {
 	return err;

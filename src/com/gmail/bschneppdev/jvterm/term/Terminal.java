@@ -23,7 +23,7 @@ public class Terminal
     private InputStream termin;
     private static int procid = 0;
 
-    private InputBuffer inbuffer = new InputBuffer();
+    private InputBuffer flush = new InputBuffer();	//you can probably tell, more frustration == dumber names. Haha.
 
     public Terminal(File file)
     {
@@ -73,19 +73,11 @@ public class Terminal
 	//}
     }
 
-    public String readInputBuffer()
+    public String readInputFlush()
     {
 	//Hack to get this thing working because messing with inputstreams is agghhdgfdggfdgfgfdgfdgffgdfg
-	Scanner line = new Scanner(this.inbuffer.getContent());
-	String ln = "";
-	if (line.hasNextLine())
-	{
-	    ln = line.nextLine();
-	}
-	else
-	{
-	    ln = " ";
-	}
+	Scanner line = new Scanner(this.flush.getContent());
+	String ln = line.nextLine();
 	line.close();
 	System.out.println("READING FLUSH...");
 	return ln;
@@ -93,7 +85,7 @@ public class Terminal
 
     public String[] runln()
     {
-	String ln = this.readInputBuffer();
+	String ln = this.readInputFlush();
 
 	StringBuilder bfrout = new StringBuilder();
 	StringBuilder bfrerr = new StringBuilder();
@@ -117,47 +109,14 @@ public class Terminal
 		        "", ""
 		};
 	    }
-	    if (cmd.equals("exit"))
-	    {
-		//Absolutely make sure we clean up our mess before exit.
-		File tmp = new File("$");
-		try
-		{
-		    tmp.createNewFile();
-		}
-		catch (IOException exception)
-		{
-		    // TODO Auto-generated catch block
-		    exception.printStackTrace();
-		}
-		try
-		{
-		for (File n : tmp.getParentFile().listFiles())
-		{
-		    if (n.getName().contains("$std"))
-		    {
-			n.delete();
-		    }
-		}
-		}
-		catch (NullPointerException e)
-		{
-		    e.printStackTrace();
-		    e.printStackTrace(termerr);
-		}
-		tmp.delete();
-		System.exit(0);
-	    }
 	    JvProcess jv = new JvProcess(cmd, rest, bfrout, termin, bfrerr);
-	    jv.setProc(procid);
-	    //Thread t = new Thread(jv);
-	    //t.start();
-	    jv.run();//remove threading for now...
+	    jv.setProc(++procid);
+	    new Thread(jv).start();
 	}
 	try
 	{
-	    Scanner outp = new Scanner(new File("$stdout" + procid));
-	    Scanner errp = new Scanner(new File("$stderr" + procid));
+	    Scanner outp = new Scanner(new File("$stdout" + (procid - 1)));
+	    Scanner errp = new Scanner(new File("$stderr" + (procid - 1)));
 
 	    while (outp.hasNextLine())
 	    {
@@ -170,7 +129,6 @@ public class Terminal
 
 	    outp.close();
 	    errp.close();
-	    procid++;
 	}
 	catch (FileNotFoundException exception)
 	{
@@ -204,6 +162,12 @@ public class Terminal
 		    break;
 		}
 		input.close();
+		if (in.equalsIgnoreCase("exit"))
+		{
+		    input.close();
+		    System.exit(0);
+		    return false;
+		}
 	    }
 	    else
 	    {
@@ -254,96 +218,97 @@ public class Terminal
 
     public String getPrompt()
     {
-	StringBuilder sb = new StringBuilder();
-	File rgr = new File("registry/system_reg.rgr");
-
-	Scanner line = null;
 	try
 	{
-	    if (!rgr.exists())
-	    {
-		line = new Scanner("RKEY_PROMPT_NAME = string:\"<%n@%l\\>!:\"");
-	    }
-	    else
-	    {
-		line = new Scanner(rgr);
-	    }
-	}
-	catch (FileNotFoundException exception)
-	{
-	    exception.printStackTrace();
-	}
-	String ln = line.nextLine();
-	while (line.hasNextLine())
-	{
-	    System.out.println(line.nextLine());
-	}
-	line.close();
+	    StringBuilder sb = new StringBuilder();
+	    File rgr = new File("registry/system_reg.rgr");
 
-	//Check for variables like "%l" or "%n".
-	//To emulate Waypoint, we'll also flip the slashes.
-
-	int indexok = ln.lastIndexOf("string:") + "string:".length() + 1;
-
-	char[] arr = ln.substring(indexok).toCharArray();
-	for (int i = 0; i < arr.length - 1; i++)
-	{
-	    //messy code :( TODO refactor
-	    if (arr[i] == '\\')
+	    Scanner line = null;
+	    try
 	    {
-		sb.append('/');
-	    }
-	    else if (arr[i] != '%')
-	    {
-		sb.append(arr[i]);
-	    }
-	    else
-	    {
-		switch (arr[i + 1])
+		if (!rgr.exists())
 		{
-		    case 'n':
-			sb.append(System.getProperty("user.name"));
-			i++;
-			break;
+		    line = new Scanner("RKEY_PROMPT_NAME = string:\"<%n@%l\\>!:\"");
+		}
+		else
+		{
+		    line = new Scanner(rgr);
+		}
+	    }
+	    catch (FileNotFoundException exception)
+	    {
+		exception.printStackTrace();
+	    }
+	    String ln = line.nextLine();
+	    line.close();
 
-		    case 'l':
-			try
-			{
-			    char[] cwd = this.cwd.getCanonicalPath().toCharArray();
-			    for (char element : cwd)
+	    //Check for variables like "%l" or "%n".
+	    //To emulate Waypoint, we'll also flip the slashes.
+
+	    int indexok = ln.lastIndexOf("string:") + "string:".length() + 1;
+
+	    char[] arr = ln.substring(indexok).toCharArray();
+	    for (int i = 0; i < arr.length - 1; i++)
+	    {
+		//messy code :( TODO refactor
+		if (arr[i] == '\\')
+		{
+		    sb.append('/');
+		}
+		else if (arr[i] != '%')
+		{
+		    sb.append(arr[i]);
+		}
+		else
+		{
+		    switch (arr[i + 1])
+		    {
+			case 'n':
+			    sb.append(System.getProperty("user.name"));
+			    i++;
+			    break;
+
+			case 'l':
+			    try
 			    {
-				if (element != '\\')
+				char[] cwd = this.cwd.getCanonicalPath().toCharArray();
+				for (char element : cwd)
 				{
-				    sb.append(element);
-				}
-				else
-				{
-				    sb.append('/');
+				    if (element != '\\')
+				    {
+					sb.append(element);
+				    }
+				    else
+				    {
+					sb.append('/');
+				    }
 				}
 			    }
-			}
-			catch (IOException exception)
-			{
-			    exception.printStackTrace();
-			}
-			i++;
-			break;
+			    catch (IOException exception)
+			    {
+				exception.printStackTrace();
+			    }
+			    i++;
+			    break;
+			case 'd':
+			    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+			    Date date = new Date();
+			    sb.append(dateFormat.format(date));
+			default:
+			    break;
+		    }
 
-		    case 'd':
-			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-			Date date = new Date();
-			sb.append(dateFormat.format(date));
-			i++;
-			break;
-
-		    default:
-			break;
 		}
-
 	    }
+	    sb.append(' ');
+	    return sb.toString();
 	}
-	sb.append(' ');
-	return sb.toString();
+	catch (Exception e)
+	{
+	    //This has frustrated me faaaaaaarrr too much.
+	    //Ignore any errors.
+	    return "    \n \\";
+	}
     }
 
     public void dispPrompt()
@@ -389,12 +354,12 @@ public class Terminal
 
     public InputBuffer getFlush()
     {
-	return inbuffer;
+	return flush;
     }
 
     public void setFlush(InputBuffer flush)
     {
-	this.inbuffer = flush;
+	this.flush = flush;
     }
 
 }

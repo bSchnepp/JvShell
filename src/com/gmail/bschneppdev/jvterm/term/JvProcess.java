@@ -3,6 +3,7 @@ package com.gmail.bschneppdev.jvterm.term;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.SequenceInputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.Scanner;
@@ -64,7 +65,16 @@ public class JvProcess implements Runnable
 	    pb.redirectError(stderr);
 	    pb.redirectOutput(stdout);
 	    pb.redirectInput(Redirect.INHERIT);
-	    pb.start();
+	    try
+	    {
+		pb.start();
+	    }
+	    catch (Exception e)
+	    {
+		PrintWriter errWriter = new PrintWriter(stderr);
+		errWriter.print("\n" + e.getMessage());
+		errWriter.close();
+	    }
 	    Scanner stderrscn = new Scanner(stderr);
 	    Scanner stdoutscn = new Scanner(stdout);
 	    while (stderrscn.hasNextLine())

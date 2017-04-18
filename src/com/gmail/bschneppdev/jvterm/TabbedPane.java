@@ -1,5 +1,6 @@
 package com.gmail.bschneppdev.jvterm;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -47,6 +48,7 @@ class Tab extends JPanel
 	this.setLayout(new FlowLayout());
 	this.add(closebutton);
 	this.add(label);
+	label.setForeground(Color.BLACK);	//For now...
 	this.setBorder(BorderFactory.createEmptyBorder());
 
 	this.closebutton.addActionListener(new ActionListener()

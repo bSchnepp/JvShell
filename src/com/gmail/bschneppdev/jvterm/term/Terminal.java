@@ -116,8 +116,17 @@ public class Terminal
 	}
 	try
 	{
-	    Scanner outp = new Scanner(new File("$stdout" + (procid - 1)));
-	    Scanner errp = new Scanner(new File("$stderr" + (procid - 1)));
+	    try
+	    {
+		Thread.sleep(1000);
+	    }
+	    catch (InterruptedException exception)
+	    {
+		// TODO Auto-generated catch block
+		exception.printStackTrace();
+	    }//Quick hack to get it working real fast... FIXME TODO
+	    Scanner outp = new Scanner(new File("$stdout" + procid));
+	    Scanner errp = new Scanner(new File("$stderr" + procid));
 
 	    while (outp.hasNextLine())
 	    {
@@ -134,7 +143,8 @@ public class Terminal
 	catch (FileNotFoundException exception)
 	{
 	    // TODO Auto-generated catch block
-	    exception.printStackTrace();
+	    String exstr = exception.getMessage();
+	    bfrerr.append(exstr);
 	}
 	String[] output = new String[]
 	{
@@ -246,7 +256,6 @@ public class Terminal
 	    }
 	    String ln = line.nextLine();
 	    line.close();
-
 	    //Check for variables like "%l" or "%n".
 	    //To emulate Waypoint, we'll also flip the slashes.
 

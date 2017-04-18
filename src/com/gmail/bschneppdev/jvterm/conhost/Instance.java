@@ -2,6 +2,7 @@ package com.gmail.bschneppdev.jvterm.conhost;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -96,6 +97,11 @@ public class Instance extends JPanel
 		g.fillRect(0, 0, width, height);
 	    }
 	});
+
+	defaults.put("defaultFont", new Font("Open Sans", Font.PLAIN, 18));	//Set the font eveeerrrryywwehhheeerrreee...
+										//It's a **really** nice lookalike/replacement/thing for Segoe, which is a *really* nice font.
+										//And __it's freeeeeeeeeeeee!__
+	
 	this.area.putClientProperty("Nimbus.Overrides", defaults);
 	this.area.putClientProperty("Nimbus.Overrides.InheritDefaults", false);
 	this.area.setBackground(Color.BLACK);

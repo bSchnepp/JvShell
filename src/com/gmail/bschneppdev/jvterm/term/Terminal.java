@@ -5,12 +5,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.ProcessBuilder.Redirect;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import com.gmail.bschneppdev.jvterm.conhost.Instance;
+import com.gmail.bschneppdev.jvterm.conhost.TermAreaInputBuffer;
 
 public class Terminal
 {
@@ -18,6 +21,9 @@ public class Terminal
     private ArrayList<File> path;
     private PrintStream termout, termerr;
     private InputStream termin;
+    private static int procid = 0;
+
+    private InputBuffer inbuffer = new InputBuffer();
 
     public Terminal(File file)
     {
@@ -67,58 +73,141 @@ public class Terminal
 	//}
     }
 
-    public boolean execute()
+    public String readInputBuffer()
     {
-
-	try
+	//Hack to get this thing working because messing with inputstreams is agghhdgfdggfdgfgfdgfdgffgdfg
+	Scanner line = new Scanner(this.inbuffer.getContent());
+	String ln = "";
+	if (line.hasNextLine())
 	{
-	    dispPrompt();
-	    @SuppressWarnings("resource")	//This closes after 'exit' command issued. I think.
-	    Scanner input = new Scanner(System.in);
-	    String in = null;
-	    if (input.hasNextLine())
+	    ln = line.nextLine();
+	}
+	else
+	{
+	    ln = " ";
+	}
+	line.close();
+	System.out.println("READING FLUSH...");
+	return ln;
+    }
+
+    public String[] runln()
+    {
+	String ln = this.readInputBuffer();
+
+	StringBuilder bfrout = new StringBuilder();
+	StringBuilder bfrerr = new StringBuilder();
+	if (!checkIntegrated(ln))
+	{
+	    String cmd, rest;
+	    if (ln.indexOf(' ') > 0)
 	    {
-		in = input.nextLine();
+		cmd = ln.substring(0, ln.indexOf(' '));
+		rest = ln.substring(ln.indexOf(' '));
 	    }
-	    while (!in.equalsIgnoreCase("exit"))
+	    else
 	    {
-		//We'll dump the standard output of the file here...
-		if (!checkIntegrated(in))
+		cmd = ln;
+		rest = "";
+	    }
+	    if (cmd.equals(""))
+	    {
+		return new String[]
 		{
-		    String cmd, rest;
-		    if (in.indexOf(' ') > 0)
+		        "", ""
+		};
+	    }
+	    if (cmd.equals("exit"))
+	    {
+		//Absolutely make sure we clean up our mess before exit.
+		File tmp = new File("$");
+		try
+		{
+		    tmp.createNewFile();
+		}
+		catch (IOException exception)
+		{
+		    // TODO Auto-generated catch block
+		    exception.printStackTrace();
+		}
+		try
+		{
+		for (File n : tmp.getParentFile().listFiles())
+		{
+		    if (n.getName().contains("$std"))
 		    {
-			cmd = in.substring(0, in.indexOf(' '));
-			rest = in.substring(in.indexOf(' '));
-		    }
-		    else
-		    {
-			cmd = in;
-			rest = "";
-		    }
-		    if (cmd.equals(""))
-		    {
-			break;
-		    }
-		    ProcessBuilder pb = new ProcessBuilder(cmd, rest);
-		    try
-		    {
-			pb.redirectOutput(Redirect.INHERIT);
-			pb.redirectInput(Redirect.INHERIT);
-			pb.redirectError(Redirect.INHERIT);
-			pb.start();
-		    }
-		    catch (IOException exception)
-		    {
-			exception.printStackTrace();
+			n.delete();
 		    }
 		}
-		break;
+		}
+		catch (NullPointerException e)
+		{
+		    e.printStackTrace();
+		    e.printStackTrace(termerr);
+		}
+		tmp.delete();
+		System.exit(0);
 	    }
-	    if (in.equalsIgnoreCase("exit"))
+	    JvProcess jv = new JvProcess(cmd, rest, bfrout, termin, bfrerr);
+	    jv.setProc(procid);
+	    //Thread t = new Thread(jv);
+	    //t.start();
+	    jv.run();//remove threading for now...
+	}
+	try
+	{
+	    Scanner outp = new Scanner(new File("$stdout" + procid));
+	    Scanner errp = new Scanner(new File("$stderr" + procid));
+
+	    while (outp.hasNextLine())
 	    {
+		bfrout.append(outp.nextLine() + '\n');
+	    }
+	    while (errp.hasNextLine())
+	    {
+		bfrerr.append(errp.nextLine() + '\n');
+	    }
+
+	    outp.close();
+	    errp.close();
+	    procid++;
+	}
+	catch (FileNotFoundException exception)
+	{
+	    // TODO Auto-generated catch block
+	    exception.printStackTrace();
+	}
+	String[] output = new String[]
+	{
+	        bfrout.toString(), bfrerr.toString()
+	};
+	return output;
+    }
+
+    public boolean execute()
+    {
+	try
+	{
+	    if (((TermAreaInputBuffer) termin).isReady())
+	    {
+		dispPrompt();
+		Scanner input = new Scanner(termin);
+		String in = null;
+		if (input.hasNextLine())
+		{
+		    in = input.nextLine();
+		}
+		while (!in.equalsIgnoreCase("exit"))
+		{
+		    //We'll dump the standard output of the file here...
+		    runln();
+		    break;
+		}
 		input.close();
-		return false;
+	    }
+	    else
+	    {
+		//...
 	    }
 	}
 	catch (NoSuchElementException exception)	//'exit' command issued...
@@ -185,6 +274,10 @@ public class Terminal
 	    exception.printStackTrace();
 	}
 	String ln = line.nextLine();
+	while (line.hasNextLine())
+	{
+	    System.out.println(line.nextLine());
+	}
 	line.close();
 
 	//Check for variables like "%l" or "%n".
@@ -236,12 +329,20 @@ public class Terminal
 			i++;
 			break;
 
+		    case 'd':
+			DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+			Date date = new Date();
+			sb.append(dateFormat.format(date));
+			i++;
+			break;
+
 		    default:
 			break;
 		}
 
 	    }
 	}
+	sb.append(' ');
 	return sb.toString();
     }
 
@@ -284,6 +385,16 @@ public class Terminal
 	    // TODO Auto-generated catch block
 	    exception.printStackTrace();
 	}
+    }
+
+    public InputBuffer getFlush()
+    {
+	return inbuffer;
+    }
+
+    public void setFlush(InputBuffer flush)
+    {
+	this.inbuffer = flush;
     }
 
 }

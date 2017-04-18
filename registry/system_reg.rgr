@@ -1,1 +1,3 @@
-RKEY_PROMPT_NAME = string:"<%n@%l\>!:"
+RKEY_PROMPT_NAME = string:"%d|%n@%l\>!:"
+RKEY_PROMPT_COLOR = color3:"0, 0, 0"
+RKEY_PROMPT_TEXT_COLOR = color3:"127, 127, 127"

@@ -3,7 +3,9 @@ A (better) JavaShell made just to brush up on Java.
 ___
 
 JvShell is a simple terminal emulator written in pure Java. It's (currently) __not__ working as intended, but I'm fixing it.
-It's intended to be a sort of "prototype" for Waypoint's shell.
+The code is absolutely horrible, a spaghetti mess. It's not meant to be very easy to work on or anything, just something quick, dirty, and _fast_ to write a better one in C++ or C later on for Waypoint. Just something easy enough to add ideas and stuff onto and add code to.
+
+Contributions, though, provided they're under the MIT License (see LICENSE) are welcome.
 ___
 
 Built-in commands:
@@ -24,9 +26,14 @@ The following combinations are supported:
 ```
 %n -- Name of user
 %l -- current working directory
+%d -- Current date in yyyy/MM/dd HH:mm:ss format
+%h -- Hostname of the computer (What network will see)
+%s -- Name of the shell (JvShell)
+%v -- Java version
 ```
 ___
 TODO features:
-- Everything!
-- Get the shell input/output to actually go on the TermArea
 - Be decent!
+- Support VT100 stuff
+- Make it actually usable!
+- Fix the resource leaks _everywhere_!

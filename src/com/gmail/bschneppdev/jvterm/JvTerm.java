@@ -16,6 +16,13 @@ import javax.swing.UnsupportedLookAndFeelException;
 import com.gmail.bschneppdev.jvterm.conhost.Instance;
 
 // Quick and dirty prototype for LightningPrompt for Waypoint. Kinda.
+// THERE'S A LOT OF RESOURCE LEAKS IN HERE, BECAUSE I WROTE A LOT OF THIS LATE AT NIGHT AND IN A HURRY. (PARTICULARLY THE TERMINAL CLASS.)
+// I'M NOT GOING TO BOTHER FIXING THEM UNTIL THEY IRRITATE ME ENOUGH.
+// YOU SHOULD PROBABLY HAVE TASK MANAGER OUT OR SOMETHING TO KILL THE MILLION JAVA RUNTIMES.
+// (IT TERMINATES FINE IF YOU CLOSE ALL TABS, OR 'EXIT' PROPERLY. NO LEAKS.)
+// THIS THING WILL SERIOUSLY CONSUME CPU USAGE TIME. YOU'VE BEEN WARNED. DON'T LET THE LEAKS GET YOU.
+
+// (this isn't a very serious project, so if you want to fork it and make it a serious one, go ahead and fix the mess I made :)! )
 
 public class JvTerm
 {

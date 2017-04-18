@@ -17,16 +17,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
-class TabActionHandler
-{
-}
-
 class Tab extends JPanel
 {
     private static final long serialVersionUID = -8567048571651398359L;
     private JButton closebutton;
     private JLabel label;
-    private TabbedPane parent;
 
     public Tab(TabbedPane parent) throws IOException
     {

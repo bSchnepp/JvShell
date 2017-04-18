@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.net.InetAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -202,6 +203,10 @@ public class Terminal
 		Instance.addVariable(key, val);
 		return true;
 	    }
+	    if (nclr.equalsIgnoreCase("exit"))
+	    {
+		System.exit(0);
+	    }
 	}
 	return false;
     }
@@ -290,11 +295,32 @@ public class Terminal
 			    }
 			    i++;
 			    break;
+
 			case 'd':
 			    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 			    Date date = new Date();
 			    sb.append(dateFormat.format(date));
+			    i++;
+			    break;
+
+			case 'h':
+			    sb.append(InetAddress.getLocalHost().getHostName());
+			    i++;
+			    break;
+
+			case 's':
+			    sb.append("JvShell");
+			    i++;
+			    break;
+
+			case 'v':
+			    //Unlike bash, this just gets the version of Java...
+			    sb.append(System.getProperty("java.version"));
+			    i++;
+			    break;
+
 			default:
+			    i++;
 			    break;
 		    }
 
